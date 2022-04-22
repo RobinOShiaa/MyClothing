@@ -1,5 +1,4 @@
-const puppeteer = require('puppeteer');
-const chalk = require('chalk');
+import puppeteer from "puppeteer"
 
 (async (url) =>  {
   const browser = await puppeteer.launch({headless : false});

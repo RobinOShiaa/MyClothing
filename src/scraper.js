@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const chalk = require('chalk');
 
 (async (url) =>  {
   const browser = await puppeteer.launch({headless : false});
@@ -15,11 +16,16 @@ const puppeteer = require('puppeteer');
 
     [...$box].forEach(item => {
       try {
+        // Link to Product
         link = `https://wearetvc.com${item.querySelector('a').getAttribute('href')}`;
+        // Array of image urls
         img = item.querySelector('.product_card__image-wrapper').getAttribute('data-bgset').trim().split(" ");
         img = img.filter(item => item.indexOf('//') === 0)
+        // Product name
         product = item.querySelector('.product-title a').innerText
+        // Price of product 
         price = item.querySelector('.money').innerText
+        // Store all relevant information within data
         data.push({product,price,img,link})
       } catch(e) {
         console.log(e);
@@ -39,7 +45,7 @@ const puppeteer = require('puppeteer');
     return data;
   })
 
-  console.log(result)
+  console.log(result);
 
   
   await browser.close();

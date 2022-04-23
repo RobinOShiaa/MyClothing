@@ -5,7 +5,7 @@ class TvcVintage {
   constructor() {
     this.url = 'https://wearetvc.com/collections/all'
   }
-
+  // async Constructor for starting the browser once initializing an instance of TvcVintage()
   async intitialize() {
     this.browser = await puppeteer.launch({headless : false});
     this.page = await this.browser.newPage();
@@ -19,7 +19,7 @@ class TvcVintage {
       [...$categories].forEach((link => links.push([link.getAttribute('href'),link.innerText])))
       return links
     })
-    console.log(result);
+    return result;
   }
 
    async scrapePage () {
@@ -61,9 +61,12 @@ class TvcVintage {
   
 }
 
-const tvc = new TvcVintage();
-await tvc.intitialize();
-const pages = tvc.getPages();
-console.log(pages)
+const start = async () => {
+  const tvc = new TvcVintage();
+  await tvc.intitialize();
+  const pages = await tvc.getPages();
+  console.log(pages);
+}
 
+start();
 // nextButton = [title=layout.pagination.next_html]

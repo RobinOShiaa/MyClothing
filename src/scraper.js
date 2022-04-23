@@ -1,51 +1,64 @@
 import puppeteer from "puppeteer"
+import {Apparel} from './apparel'
 
-(async (url) =>  {
-  const browser = await puppeteer.launch({headless : false});
-  const page = await browser.newPage();
-  await page.goto(url);
-  
-  const result = await page.evaluate(() => {
-    const $box = document.querySelectorAll('.box.product');
-    let link,
-    img,
-    product,
-    price;
-    data = [];
+class TvcVintage {
+  constructor() {
+    this.url = 'https://wearetvc.com/collections/all'
+  }
 
-    [...$box].forEach(item => {
-      try {
-        // Link to Product
-        link = `https://wearetvc.com${item.querySelector('a').getAttribute('href')}`;
-        // Array of image urls
-        img = item.querySelector('.product_card__image-wrapper').getAttribute('data-bgset').trim().split(" ");
-        img = img.filter(item => item.indexOf('//') === 0)
-        // Product name
-        product = item.querySelector('.product-title a').innerText
-        // Price of product 
-        price = item.querySelector('.money').innerText
-        // Store all relevant information within data
-        data.push({product,price,img,link})
-      } catch(e) {
-        console.log(e);
-      }
-      
+  async getPages () {
+    const browser = await puppeteer.launch({headless : false});
+    const page = await browser.newPage();
+    await page.goto(this.url);
+    const result = await page.evaluate(() => {
+      let links = [];
+      const $categories = document.querySelectorAll('[data-group=product] a');
+      [...$categories].forEach((link => links.push([link.getAttribute('href'),link.innerText])))
+      return links
     })
-    // const $links = document.querySelectorAll('.box.product a')
-    // const $imgs = document.querySelectorAll('.product_card__image-wrapper');
-    // const $product = document.querySelectorAll('.product-title a')
-    // const $price = document.querySelectorAll('.price span')
+    console.log(result)
+  }
 
-    // const resultLinks = [...$links].map(h => `https://wearetvc.com${h.getAttribute('href')}`);
-    // const resultImgs = [...$imgs].map(item => item.getAttribute('data-bgset'));
-    // const resultProduct = [...$product].map(item => item.innerText);
-    // const resultPrice = [...$price].map(item => item.innerText)
-    // return resultPrice;
-    return data;
-  })
-
-  console.log(result);
-
+   async scrapePage () {
+    const browser = await puppeteer.launch({headless : false});
+    const page = await browser.newPage();
+    await page.goto(this.url);
+    
+    const result = await page.evaluate(() => {
+      const $box = document.querySelectorAll('.box.product');
+      let link,
+      img,
+      product,
+      price;
+      data = [];
   
-  await browser.close();
-})('https://wearetvc.com/collections/all');
+      [...$box].forEach(item => {
+        try {
+          // Link to Product
+          link = `https://wearetvc.com${item.querySelector('a').getAttribute('href')}`;
+          // Array of image urls
+          img = item.querySelector('.product_card__image-wrapper').getAttribute('data-bgset').trim().split(" ");
+          img = img.filter(item => item.indexOf('//') === 0)
+          // Product name
+          product = item.querySelector('.product-title a').innerText
+          // Price of product 
+          price = item.querySelector('.money').innerText
+          // Store all relevant information within data
+          data.push({product,price,img,link})
+        } catch(e) {
+          console.log(e);
+        }
+        
+      })
+      return data;
+    })
+  
+    console.log(result);
+  
+    
+    await browser.close();
+  };
+  
+}
+
+// nextButton = [title=layout.pagination.next_html]

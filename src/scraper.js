@@ -1,30 +1,30 @@
 import puppeteer from "puppeteer"
-import {Apparel} from './apparel'
+// import {Apparel} from './apparel'
 
 class TvcVintage {
   constructor() {
     this.url = 'https://wearetvc.com/collections/all'
   }
 
+  async intitialize() {
+    this.browser = await puppeteer.launch({headless : false});
+    this.page = await this.browser.newPage();
+  }
+
   async getPages () {
-    const browser = await puppeteer.launch({headless : false});
-    const page = await browser.newPage();
-    await page.goto(this.url);
-    const result = await page.evaluate(() => {
+    await this.page.goto(this.url);
+    const result = await this.page.evaluate(() => {
       let links = [];
       const $categories = document.querySelectorAll('[data-group=product] a');
       [...$categories].forEach((link => links.push([link.getAttribute('href'),link.innerText])))
       return links
     })
-    console.log(result)
+    console.log(result);
   }
 
    async scrapePage () {
-    const browser = await puppeteer.launch({headless : false});
-    const page = await browser.newPage();
-    await page.goto(this.url);
-    
-    const result = await page.evaluate(() => {
+    await this.page.goto(this.url);
+    const result = await this.page.evaluate(() => {
       const $box = document.querySelectorAll('.box.product');
       let link,
       img,
@@ -60,5 +60,10 @@ class TvcVintage {
   };
   
 }
+
+const tvc = new TvcVintage();
+await tvc.intitialize();
+const pages = tvc.getPages();
+console.log(pages)
 
 // nextButton = [title=layout.pagination.next_html]

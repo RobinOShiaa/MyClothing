@@ -4,26 +4,54 @@ import puppeteer from "puppeteer"
 class TvcVintage {
   constructor() {
     this.url = 'https://wearetvc.com/collections/all'
+    this.pages;
+    this.data = [];
   }
   // async Constructor for starting the browser once initializing an instance of TvcVintage()
   async intitialize() {
     this.browser = await puppeteer.launch({headless : false});
     this.page = await this.browser.newPage();
+    await this.page.goto(this.url);
+  }
+
+  async checkForNextButton () {
+    const value = await this.page.evaluate(() => {
+      try {
+        const nextUrl = document.querySelector('[title="layout.pagination.next_html"]').getAttribute('href');
+        return [`https://wearetvc.com${nextUrl}`,true]
+      } catch (e) {
+        if (e instanceof TypeError) {
+          return ['',false];
+        }
+        throw new Error(`${e.message}`)
+        
+      }
+    })
+    return value;
+  }
+
+
+  async iiterate () {
+      for(const page of this.pages) {
+        await this.page.goto(page[0]);
+        await this.scrapePage();
+       
+      }
+      console.log(this.data.length);
   }
 
   async getPages () {
-    await this.page.goto(this.url);
     const result = await this.page.evaluate(() => {
       let links = [];
       const $categories = document.querySelectorAll('[data-group=product] a');
-      [...$categories].forEach((link => links.push([link.getAttribute('href'),link.innerText])))
+      [...$categories].forEach((link => links.push([`https://wearetvc.com${link.getAttribute('href')}`,link.innerText])))
       return links
     })
+    this.pages = result;
     return result;
   }
 
    async scrapePage () {
-    await this.page.goto(this.url);
     const result = await this.page.evaluate(() => {
       const $box = document.querySelectorAll('.box.product');
       let link,
@@ -47,16 +75,18 @@ class TvcVintage {
           data.push({product,price,img,link})
         } catch(e) {
           console.log(e);
-        }
-        
+        }        
       })
+
       return data;
-    })
-  
-    console.log(result);
-  
-    
-    await browser.close();
+    });
+
+    this.data = this.data.concat(result);
+
+    // if (await this.checkForNextButton()[1]) {
+    //   await this.page.goto[this.checkForNextButton()[0]]
+    //   await this.scrapePage();
+    // };
   };
   
 }
@@ -64,9 +94,10 @@ class TvcVintage {
 const start = async () => {
   const tvc = new TvcVintage();
   await tvc.intitialize();
-  const pages = await tvc.getPages();
-  console.log(pages);
+  await tvc.getPages();
+  await tvc.iiterate();
+  
 }
 
 start();
-// nextButton = [title=layout.pagination.next_html]
+// 

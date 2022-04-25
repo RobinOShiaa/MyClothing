@@ -24,20 +24,20 @@ class TvcVintage {
           return ['',false];
         }
         throw new Error(`${e.message}`)
-        
       }
     })
     return value;
   }
 
-
   async iiterate () {
       for(const page of this.pages) {
         await this.page.goto(page);
-        await this.scrapePage();
-       
-      }
-      
+        const category = await this.page.evaluate(() => {
+          return 
+        });
+        console.log();
+        await this.scrapePage();   
+      }   
   }
 
   async getPages () {
@@ -48,7 +48,6 @@ class TvcVintage {
       [...$categories].forEach(link => links.push(`https://wearetvc.com${link.getAttribute('href')}`))
       return links
     })
-    
     this.pages = Array.from(new Set(result));
     return this.pages;
   }
@@ -57,13 +56,14 @@ class TvcVintage {
     const result = await this.page.evaluate(() => {
       const $box = document.querySelectorAll('.box.product');
       let link,
+      category,
       img,
       product,
-      price;
+      price,
       data = [];
-  
       [...$box].forEach(item => {
         try {
+          category = ((document.querySelector('.breadcrumb span:last-child').innerText).split(' ')[1]).toLowerCase();
           // Link to Product
           link = `https://wearetvc.com${item.querySelector('a').getAttribute('href')}`;
           // Array of image urls
@@ -74,18 +74,17 @@ class TvcVintage {
           // Price of product 
           price = item.querySelector('.money').innerText
           // Store all relevant information within data
-          data.push({product,price,img,link})
+          data.push({category,product,price,img,link})
         } catch(e) {
           console.log(e);
         }        
-      })
-
+      }) 
       return data;
     });
-
     this.data = this.data.concat(result);
     let [buttonUrl,isButton] = await this.checkForNextButton();
 
+    // If next page button of same category of clothes go to next page and scrape again
     if(isButton) {
       await this.page.goto(buttonUrl);
       await this.scrapePage();
@@ -93,14 +92,13 @@ class TvcVintage {
   };
   
 }
-
 const start = async () => {
   const tvc = new TvcVintage();
+  // Initialize browser and page
   await tvc.intitialize();
+  // Retrieve all relevant sub categories of clothing
   await tvc.getPages();
+  // Navigate through each to scrape products
   await tvc.iiterate();
-  
 }
-
 start();
-// 

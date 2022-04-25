@@ -37,7 +37,7 @@ class TvcVintage {
         await this.scrapePage();
        
       }
-      console.log(this.data.length);
+      
   }
 
   async getPages () {
@@ -84,11 +84,10 @@ class TvcVintage {
     });
 
     this.data = this.data.concat(result);
-    console.log(this.data.length);
-    let isButton = await this.checkForNextButton();
+    let [buttonUrl,isButton] = await this.checkForNextButton();
 
-    if(isButton[1]) {
-      await this.page.goto(isButton[0]);
+    if(isButton) {
+      await this.page.goto(buttonUrl);
       await this.scrapePage();
     };
   };
@@ -100,6 +99,7 @@ const start = async () => {
   await tvc.intitialize();
   await tvc.getPages();
   await tvc.iiterate();
+  
 }
 
 start();

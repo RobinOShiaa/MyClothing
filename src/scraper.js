@@ -33,7 +33,7 @@ class TvcVintage {
 
   async iiterate () {
       for(const page of this.pages) {
-        await this.page.goto(page[0]);
+        await this.page.goto(page);
         await this.scrapePage();
        
       }
@@ -43,12 +43,14 @@ class TvcVintage {
   async getPages () {
     const result = await this.page.evaluate(() => {
       let links = [];
-      const $categories = document.querySelectorAll('[data-group=product] a');
-      [...$categories].forEach((link => links.push([`https://wearetvc.com${link.getAttribute('href')}`,link.innerText])))
+      const $categories = document.querySelectorAll('.nav-container [data-category="product"] a');
+      console.log([...$categories]);
+      [...$categories].forEach(link => links.push(`https://wearetvc.com${link.getAttribute('href')}`))
       return links
     })
-    this.pages = result;
-    return result;
+    
+    this.pages = Array.from(new Set(result));
+    return this.pages;
   }
 
    async scrapePage () {
@@ -82,11 +84,13 @@ class TvcVintage {
     });
 
     this.data = this.data.concat(result);
+    console.log(this.data.length);
+    let isButton = await this.checkForNextButton();
 
-    // if (await this.checkForNextButton()[1]) {
-    //   await this.page.goto[this.checkForNextButton()[0]]
-    //   await this.scrapePage();
-    // };
+    if(isButton[1]) {
+      await this.page.goto(isButton[0]);
+      await this.scrapePage();
+    };
   };
   
 }
@@ -96,7 +100,6 @@ const start = async () => {
   await tvc.intitialize();
   await tvc.getPages();
   await tvc.iiterate();
-  
 }
 
 start();

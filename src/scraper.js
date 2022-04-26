@@ -1,5 +1,7 @@
-import puppeteer from "puppeteer"
-// import {Apparel} from './apparel'
+const puppeteer = require("puppeteer");
+// import './db/mongoose';
+const {insertToDb} = require('./db/mongo')
+
 
 class TvcVintage {
   constructor() {
@@ -30,14 +32,15 @@ class TvcVintage {
   }
 
   async iiterate () {
-      for(const page of this.pages) {
+      for (const page of this.pages) {
         await this.page.goto(page);
         const category = await this.page.evaluate(() => {
           return 
         });
         console.log();
         await this.scrapePage();   
-      }   
+      }  
+      return this.data; 
   }
 
   async getPages () {
@@ -57,8 +60,8 @@ class TvcVintage {
       const $box = document.querySelectorAll('.box.product');
       let link,
       category,
-      img,
-      product,
+      imgs,
+      name,
       price,
       data = [];
       [...$box].forEach(item => {
@@ -67,24 +70,23 @@ class TvcVintage {
           // Link to Product
           link = `https://wearetvc.com${item.querySelector('a').getAttribute('href')}`;
           // Array of image urls
-          img = item.querySelector('.product_card__image-wrapper').getAttribute('data-bgset').trim().split(" ");
-          img = img.filter(item => item.indexOf('//') === 0)
+          imgs = item.querySelector('.product_card__image-wrapper').getAttribute('data-bgset').trim().split(" ");
+          imgs = imgs.filter(item => item.indexOf('//') === 0)
           // Product name
-          product = item.querySelector('.product-title a').innerText
+          name = item.querySelector('.product-title a').innerText
           // Price of product 
           price = item.querySelector('.money').innerText
           // Store all relevant information within data
-          data.push({category,product,price,img,link})
+          data.push({ category, name, price, imgs, link })
         } catch(e) {
           console.log(e);
         }        
       }) 
       return data;
     });
-    this.data = this.data.concat(result);
-    let [buttonUrl,isButton] = await this.checkForNextButton();
-
+    let [buttonUrl, isButton] = await this.checkForNextButton();
     // If next page button of same category of clothes go to next page and scrape again
+    this.data = this.data.concat(result);
     if(isButton) {
       await this.page.goto(buttonUrl);
       await this.scrapePage();
@@ -100,5 +102,8 @@ const start = async () => {
   await tvc.getPages();
   // Navigate through each to scrape products
   await tvc.iiterate();
+  console.log(tvc.data);
+  await insertToDb(tvc.data);
+  
 }
 start();

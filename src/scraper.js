@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 // import './db/mongoose';
 const {insertToDb} = require('./db/mongo')
+const fs = require('fs');
 
 
 class TvcVintage {
@@ -76,6 +77,7 @@ class TvcVintage {
           name = item.querySelector('.product-title a').innerText
           // Price of product 
           price = item.querySelector('.money').innerText
+          
           // Store all relevant information within data
           data.push({ category, name, price, imgs, link })
         } catch(e) {
@@ -103,6 +105,7 @@ const start = async () => {
   // Navigate through each to scrape products
   await tvc.iiterate();
   console.log(tvc.data);
+  fs.writeFileSync('./data.json', JSON.stringify(tvc.data));
   await insertToDb(tvc.data);
   
 }
